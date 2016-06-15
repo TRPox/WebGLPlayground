@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<script type="text/javascript" src="three.min.js"></script>
+<script type="text/javascript" src="Playground/ShaderStuff.js"></script>
+
+<script type="x-shader/x-vertex" id="vertex">
+    uniform float time;
+
+
+    //varying vec4 posi;
+
+    attribute vec3 customColor;
+
+    //varying vec3 myCol;
+
+    varying vec2 vUv;
+
+    uniform sampler2D texture;
+
+    void main() {
+        gl_Position = projectionMatrix *
+                modelViewMatrix *
+                vec4(position,1.0);
+        //posi = gl_Position;
+
+        //myCol = customColor;
+        vUv = uv;
+    }
+
+</script>
+
+<script id="fragment" type=x-shader/x-fragment">
+        uniform float time;
+        uniform vec3 color;
+        //varying vec4 posi;
+
+        //varying vec3 myCol;
+
+        varying vec2 vUv;
+
+
+        uniform sampler2D texture;
+
+        highp float random(vec2 co)
+        {
+            highp float a = 12.9898;
+            highp float b = 78.233;
+            highp float c = 43758.5453;
+            highp float dt= dot(co.xy ,vec2(a,b));
+            highp float sn= mod(dt,3.14);
+            return fract(sin(sn) * c);
+         }
+
+		void main()
+		{
+		    vec2 v = vec2(0,1);
+		    float r = random(v)*2.;
+		    //float i = floor(random(v));
+			gl_FragColor = texture2D(texture, vUv);
+			//gl_FragColor = vec4(1.0, 0.0,0.0,1.0);
+		}
+
+
+</script>
+
+</body>
+</html>

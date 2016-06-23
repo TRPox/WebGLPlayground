@@ -6,67 +6,68 @@
 </head>
 <body>
 <script type="text/javascript" src="three.min.js"></script>
-<script src="http://mrdoob.github.com/three.js/examples/js/Detector.js"></script>
-<script src="http://mrdoob.github.com/three.js/examples/js/libs/stats.min.js"></script>
-<script src="http://mrdoob.github.com/three.js/examples/js/controls/OrbitControls.js"></script>
+<!--<script src="http://mrdoob.github.com/three.js/examples/js/Detector.js"></script>-->
+<!--<script src="http://mrdoob.github.com/three.js/examples/js/libs/stats.min.js"></script>-->
+<!--<script src="http://mrdoob.github.com/three.js/examples/js/controls/OrbitControls.js"></script>-->
 
-<!--<script type="x-shader/x-vertex" id="vertex">-->
-    <!--uniform float time;-->
-
-
-    <!--//varying vec4 posi;-->
-
-    <!--attribute vec3 customColor;-->
-
-    <!--//varying vec3 myCol;-->
-
-    <!--varying vec2 vUv;-->
-
-    <!--uniform sampler2D texture;-->
-
-    <!--void main() {-->
-        <!--gl_Position = projectionMatrix *-->
-                <!--modelViewMatrix *-->
-                <!--vec4(position,1.0);-->
-
-        <!--vUv = uv;-->
-    <!--}-->
+<script type="x-shader/x-vertex" id="vertex">
+    uniform float time;
 
 
+    //varying vec4 posi;
 
-<!--</script>-->
+    attribute vec3 customColor;
 
-<!--<script type=x-shader/x-fragment" id="fragment">-->
-        <!--uniform float time;-->
-        <!--uniform vec3 color;-->
-        <!--//varying vec4 posi;-->
+    //varying vec3 myCol;
 
-        <!--//varying vec3 myCol;-->
+    varying vec2 vUv;
 
-        <!--varying vec2 vUv;-->
+    uniform sampler2D texture;
 
+    void main() {
+        gl_Position = projectionMatrix *
+                modelViewMatrix *
+                vec4(position,1.0);
 
-        <!--uniform sampler2D texture;-->
-
-        <!--highp float random(vec2 co)-->
-        <!--{-->
-            <!--highp float a = 12.9898;-->
-            <!--highp float b = 78.233;-->
-            <!--highp float c = 43758.5453;-->
-            <!--highp float dt= dot(co.xy ,vec2(a,b));-->
-            <!--highp float sn= mod(dt,3.14);-->
-            <!--return fract(sin(sn) * c);-->
-         <!--}-->
-
-		<!--void main()-->
-		<!--{-->
-			<!--gl_FragColor = texture2D(texture, vUv);-->
-			<!--gl_FragColor.g += 0.01;-->
-		<!--}-->
+        vUv = uv;
+    }
 
 
-<!--</script>-->
-<!--<script type="text/javascript" src="Playground/RTT.js"></script>-->
+
+</script>
+
+<script type=x-shader/x-fragment" id="fragment">
+        uniform float time;
+        varying vec2 vUv;
+
+        uniform vec2 delta;
+
+        uniform sampler2D texture;
+
+        highp float random(vec2 co)
+        {
+            highp float a = 12.9898;
+            highp float b = 78.233;
+            highp float c = 43758.5453;
+            highp float dt= dot(co.xy ,vec2(a,b));
+            highp float sn= mod(dt,3.14);
+            return fract(sin(sn) * c);
+         }
+
+		void main()
+		{
+		    vec2 dy = vec2(0.0,delta.y);
+            gl_FragColor = texture2D(texture, vUv);
+			if(gl_FragColor.g < vUv.y) {
+                gl_FragColor.g += 1./32.;
+            }
+
+
+
+		}
+
+</script>
+<script type="text/javascript" src="Playground/RTT.js"></script>
 
 <!-- TEST STUFF ZEUGS -->
 <script id="vs_rt" type="x-shader/x-vertex">
@@ -139,6 +140,6 @@
     }
 </script>
 
-<script type="text/javascript" src="Playground/testy.js"></script>
+<!--<script type="text/javascript" src="Playground/testy.js"></script>-->
 </body>
 </html>

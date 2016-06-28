@@ -24,6 +24,7 @@
 
     uniform sampler2D texture;
 
+
     void main() {
         gl_Position = projectionMatrix *
                 modelViewMatrix *
@@ -34,15 +35,33 @@
 
 
 
+
+
+
 </script>
 
 <script type=x-shader/x-fragment" id="fragment">
         uniform float time;
+        uniform vec2 delta;
+        uniform sampler2D texture;
+        uniform vec2 textureRes;
+        uniform int maxSpeed;
+
         varying vec2 vUv;
 
-        uniform vec2 delta;
+        const vec4 speedNoCar = vec4(0.0, 0.0, 1.0, 1.0);
+        uniform vec4 speed0;
+        uniform vec4 speed1;
+        uniform vec4 speed2;
+        uniform vec4 speed3;
+        uniform vec4 speed4;
+        uniform vec4 speed5;
 
-        uniform sampler2D texture;
+        vec4 speedColor;
+        int speedIndex;
+
+        mat4 speedColorMatrix;
+
 
         highp float random(vec2 co)
         {
@@ -54,19 +73,110 @@
             return fract(sin(sn) * c);
          }
 
+        bool isApproxEqual(vec4 v1, vec4 v2) {
+            vec4 allowedDifference = vec4(0.01,0.01,0.01,0.01);
+            bvec4 comparison = greaterThan(abs(v1-v2),allowedDifference);
+            if(comparison.r || comparison.g || comparison.b || comparison.a) {
+                return false;
+            }
+           return true;
+    }
+
+        void accelerate() {
+            for(int i=0; i < 4; i++) {
+                bool isEqual = isApproxEqual(speedColor, speedColorMatrix[i]);
+                if(isEqual) {
+                    speedColor = speedColorMatrix[i+1];
+                    speedIndex = i+1;
+                    break;
+                }
+            }
+        }
+
+        void brake() {
+            vec2 dx = vec2(delta.x, 0.0);
+            vec2 dy = vec2(0.0,delta.y);
+            for(int i = 1; i < 4; i++) {
+                float f = float(i);
+                if(!isApproxEqual(texture2D(texture, vUv + dx*f), speedNoCar)) {
+                        speedColor = speedColorMatrix[i-1];
+                    break;
+                }
+            }
+        }
+
+        void moveToThisPixel() {
+            vec2 dx = vec2(delta.x, 0.0);
+            vec2 dy = vec2(0.0,delta.y);
+            if(isApproxEqual(speedColor, speedNoCar)) {
+                for(int i=0; i < 4; i++) {
+                    int index = i;
+                    if(index < 0) {
+                        index = int(textureRes.x) - index - 1;
+                    }
+                    vec4 color = texture2D(texture, vUv - dx*float(index));
+                    if(!isApproxEqual(color, speedNoCar)) {
+                        speedColor = color;
+                        break;
+                    }
+                }
+            }
+        }
+
+
+        bool canMove() {
+            vec2 dx = vec2(delta.x, 0.0);
+            vec2 dy = vec2(0.0,delta.y);
+            for(int i = 0; i < 4; i++) {
+                float f = float(i);
+                if(isApproxEqual(speedColor, speedColorMatrix[i])) {
+                    if(isApproxEqual(texture2D(texture, vUv + dx * f), speedNoCar)) {
+                        return true;
+                    }
+                    break;
+                }
+            }
+            return false;
+        }
+
+        bool hasMoved() {
+            vec2 dx = vec2(delta.x, 0.0);
+            vec2 dy = vec2(0.0,delta.y);
+            for(int i = 0; i < 4; i++) {
+                float f = float(i);
+                if(isApproxEqual(speedColor, speedColorMatrix[i])) {
+                    if(isApproxEqual(texture2D(texture, vUv + dx * f), speedColor)) {
+                        return true;
+                    }
+                    break;
+                }
+            }
+            return false;
+        }
+
 		void main()
 		{
-		    vec2 dy = vec2(0.0,delta.y);
-            gl_FragColor = texture2D(texture, vUv);
-			if(gl_FragColor.g < vUv.y) {
-                gl_FragColor.g += 1./32.;
-            }
+
+            speedColorMatrix[0] = speed0;
+            speedColorMatrix[1] = speed1;
+            speedColorMatrix[2] = speed2;
+            speedColorMatrix[3] = speed3;
+            speedColor =  texture2D(texture, vUv);
+
+            accelerate();
+            brake();
 
 
 
+
+            gl_FragColor = speedColor;
 		}
 
+
+
+
 </script>
+
 <script type="text/javascript" src="Playground/RTT.js"></script>
 
 <!-- TEST STUFF ZEUGS -->
@@ -79,6 +189,9 @@
 
         gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
     }
+
+
+
 </script>
 <!-- Render texture fragment shader. Runs a simulation step. -->
 <script id="fs_rt" type="x-shader/x-fragment">
@@ -108,6 +221,9 @@
 
         gl_FragColor.g += 0.01;
     }
+
+
+
 </script>
 <!-- Main scene vertex shader. Updates mesh vertex height based on render texture color. -->
 <script id="vs_setHeight" type="x-shader/x-vertex">
@@ -128,6 +244,9 @@
 
         gl_Position = projectionMatrix * modelViewMatrix * vec4(newpos, 1.0);
     }
+
+
+
 </script>
 <!-- Main scene fragment shader. Writes the render texture colors to the main scene mesh. Mainly used for debugging. -->
 <script id="fs_setColor" type="x-shader/x-fragment">
@@ -138,6 +257,9 @@
         gl_FragColor = texture2D(texture, vUv);
 
     }
+
+
+
 </script>
 
 <!--<script type="text/javascript" src="Playground/testy.js"></script>-->
